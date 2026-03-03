@@ -1,15 +1,17 @@
 // ============================================================
-//  CONTENT SCRIPT — CC Subtitle Extractor
-//  Control channel: chrome.storage.local  (no message passing)
-//  Output channel:  chrome.storage.local  { ccScript: string }
+//  CONTENT SCRIPT — CC Subtitle Extractor  v5
+//  Dual strategy: MutationObserver + polling fallback
+//  Fixes: CC not detected unless video is restarted.
 // ============================================================
 
 let isRecording = false;
 let fullScript = "";
 let lastProcessedText = "";
 let subtitleObserver = null;
+let pollTimer = null;           // fallback polling timer
+let playerWatchTimer = null;    // waits for #movie_player to appear
 
-// ── Init: check if recording was already active (e.g. page navigation) ──
+// ── Init: restore state from storage ─────────────────────────
 chrome.storage.local.get(['ccActive', 'ccScript'], (data) => {
     if (data.ccScript) {
         fullScript = data.ccScript;
@@ -17,11 +19,11 @@ chrome.storage.local.get(['ccActive', 'ccScript'], (data) => {
     }
     if (data.ccActive) {
         isRecording = true;
-        startObserver();
+        startCapture();
     }
 });
 
-// --- Listen to storage for start/stop/clear commands ---
+// ── Storage listener: start / stop / clear ───────────────────
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
 
@@ -29,10 +31,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
         const shouldRecord = changes.ccActive.newValue;
         if (shouldRecord && !isRecording) {
             isRecording = true;
-            startObserver();
+            startCapture();
         } else if (!shouldRecord && isRecording) {
             isRecording = false;
-            if (subtitleObserver) subtitleObserver.disconnect();
+            stopCapture();
         }
     }
 
@@ -43,7 +45,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     }
 });
 
-// --- Overlap merging algorithm ---
+// ── Overlap-merging algorithm ─────────────────────────────────
 function adjustTextOverlap(existingText, newText) {
     if (!existingText) return newText;
 
@@ -67,11 +69,10 @@ function adjustTextOverlap(existingText, newText) {
     const remaining = overlapCount > 0 ? newWords.slice(overlapCount) : newWords;
     const wordsToAdd = remaining.join(' ');
     if (wordsToAdd.length === 0) return existingText;
-
     return existingText + (existingText.endsWith(' ') ? '' : ' ') + wordsToAdd;
 }
 
-// --- Process visible captions ---
+// ── Read visible captions and append to script ───────────────
 function processSubtitles() {
     if (!isRecording) return;
 
@@ -91,27 +92,61 @@ function processSubtitles() {
     }
 }
 
-// --- MutationObserver on YouTube's player ---
-function startObserver() {
-    // Look for the caption container first (more specific and reliable)
-    const captionWindow = document.querySelector('.ytp-caption-window-container');
-    const target = captionWindow || document.querySelector('#ytd-player') || document.querySelector('#movie_player');
-
-    if (!target) {
-        // Player hasn't loaded yet — retry
-        setTimeout(startObserver, 1500);
-        return;
-    }
-
+// ── MutationObserver anchored to the stable #movie_player ────
+// We ALWAYS observe #movie_player (not the caption container)
+// because the caption container is created/destroyed dynamically.
+function attachObserver(player) {
     if (subtitleObserver) subtitleObserver.disconnect();
-
     subtitleObserver = new MutationObserver(processSubtitles);
-    subtitleObserver.observe(target, {
+    subtitleObserver.observe(player, {
         childList: true,
         subtree: true,
         characterData: true
     });
-
-    // Trigger once immediately in case captions are already visible
-    processSubtitles();
 }
+
+// ── Polling fallback: runs every 800ms as a safety net ───────
+// Catches any captions the observer may have missed (e.g. when
+// YouTube recycles DOM nodes instead of mutating them).
+function startPollFallback() {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(processSubtitles, 800);
+}
+
+function stopPollFallback() {
+    clearInterval(pollTimer);
+    pollTimer = null;
+}
+
+// ── Wait until #movie_player exists, then attach both strategies
+function startCapture() {
+    // Clear any pending player-wait timer
+    clearInterval(playerWatchTimer);
+
+    function tryAttach() {
+        // #movie_player is the most stable YouTube player container.
+        // It exists from the moment the video page loads.
+        const player = document.querySelector('#movie_player');
+        if (!player) return false;   // not ready yet
+
+        attachObserver(player);
+        startPollFallback();
+        processSubtitles();          // read immediately if CC already showing
+        return true;
+    }
+
+    if (!tryAttach()) {
+        // Player not ready — poll every 500ms until it appears
+        playerWatchTimer = setInterval(() => {
+            if (tryAttach()) clearInterval(playerWatchTimer);
+        }, 500);
+    }
+}
+
+// ── Clean up everything when recording stops ─────────────────
+function stopCapture() {
+    if (subtitleObserver) { subtitleObserver.disconnect(); subtitleObserver = null; }
+    stopPollFallback();
+    clearInterval(playerWatchTimer);
+}
+

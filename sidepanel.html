@@ -31,14 +31,6 @@
       </div>
 
       <div class="header-right">
-        <button class="icon-btn" id="settings-toggle-btn" title="Configuración">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <path
-              d="M19.07 4.93a10 10 0 0 0-14.14 0M4.93 19.07a10 10 0 0 0 14.14 0M19.07 19.07a10 10 0 0 0 0-14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
-          </svg>
-        </button>
       </div>
     </header>
 
@@ -49,55 +41,11 @@
           stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;color:var(--primary)">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
         </svg>
-        <span>VerifAI es una herramienta que mitiga el impacto de la desinformación en el proceso electoral para
-          identificar, evaluar y validar las afirmaciones y datos de los discursos de los candidatos presidenciales a
-          partir de la evidencia. Esta es una herramienta de código abierto que usa tecnología de OpenAI y Gemini de
-          Google para extraer texto de vídeos y directos en Youtube, permitiendo edición en vivo y corrección con IA
-          usando Close Caption o modelos tipo Whisper. El usuario puede desarrollar distintas acciones; permite corregir
-          el discurso, entrevista o intervención en un texto limpio, fácil de leer y de interpretar. Permite usar el
-          guión para realizar fact-checking en tiempo real, identificando declaraciones comprobables y permitiendo
-          editarlas. Por último permite hacer análisis de discurso; tono y emociones dominantes, emociones dominantes,
-          palabras clave y encuadre .</span>
+        <span><strong></strong>VerifAI</strong> es una potente herramienta de código abierto diseñada para mitigar el impacto de la desinformación en procesos electorales. Su objetivo es extraer, evaluar y validar en tiempo real las afirmaciones empíricas en los discursos de los candidatos políticos. Integrando inteligencia artificial avanzada de OpenAI y Google (Gemini), la extensión captura las transcripciones de videos y directos de YouTube —ya sea mediante Close Captions (CC) o reconocimiento de voz nativo (Whisper)— transformando el habla en texto limpio y analizable. <br><br><strong>Funciones clave:</strong> 1) Corrección de IA en vivo para limpiar el texto hablado; 2) Fact-checking instantáneo mediante extracción inteligente de declaraciones e investigación web; y 3) Análisis de discurso profundo y forense para revelar el tono general, emociones dominantes, uso de falacias lógicas, eufemismos, polarización discursiva y estrategias narrativas (encuadre o framing).</span>
       </div>
       <button id="desc-close-btn" class="desc-close-btn" title="Cerrar">✕</button>
     </div>
 
-    <!-- ── Settings ── -->
-    <div id="settings-panel" class="settings-panel hidden">
-      <p class="settings-label">API Key de OpenAI</p>
-      <div class="input-row">
-        <input type="password" id="api-key-input" placeholder="sk-..." autocomplete="off">
-        <button class="btn btn-sm" id="save-api-key-btn">Guardar</button>
-      </div>
-      <p class="settings-hint">Usada para Whisper, corrección y verificación con IA.</p>
-
-      <p class="settings-label" style="margin-top:10px">API Key de Gemini <span
-          style="font-size:10px;color:var(--success);font-weight:500;text-transform:none;letter-spacing:0">✔ Google
-          Search en tiempo real</span></p>
-      <div class="input-row">
-        <input type="password" id="gemini-key-input" placeholder="AIza..." autocomplete="off">
-      </div>
-      <p class="settings-hint">Con Gemini el verificador usa Google Search en tiempo real. Key gratuita en
-        <strong style="color:var(--primary)">aistudio.google.com/apikey</strong>. Sin ella, usa GPT (datos hasta 2024).
-      </p>
-      <div class="settings-row">
-        <div class="settings-col">
-          <p class="settings-label">Idioma</p>
-          <select id="language-select">
-            <option value="es">Español</option>
-            <option value="en">English</option>
-            <option value="pt">Português</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
-          </select>
-        </div>
-        <div class="settings-col">
-          <p class="settings-label">Intervalo Whisper (s)</p>
-          <input type="number" id="chunk-seconds-input" min="3" max="20" value="10" placeholder="10">
-        </div>
-      </div>
-      <p class="settings-hint">Intervalo de envío a Whisper. Mín: 3s, Máx: 20s.</p>
-    </div>
 
     <!-- ── Main Tabs ── -->
     <div class="tabs">
@@ -133,7 +81,105 @@
         </svg>
         Discurso
       </button>
+      <button class="tab-btn" data-mode="config" id="settings-toggle-btn" style="margin-left:auto">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      </button>
     </div>
+
+    <!-- ══════════════ CONFIG PANEL ══════════════ -->
+    <div id="panel-config" class="panel hidden settings-page">
+      <p class="settings-label">API Key de OpenAI</p>
+      <div class="input-row">
+        <input type="password" id="api-key-input" placeholder="sk-..." autocomplete="off">
+        <button class="btn btn-sm" id="save-api-key-btn">Guardar</button>
+      </div>
+      <p class="settings-hint">Usada para Whisper, corrección y verificación con IA.</p>
+
+      <p class="settings-label" style="margin-top:12px">API Key de Gemini
+        <span style="font-size:10px;color:var(--success);font-weight:500;text-transform:none;letter-spacing:0"> ✔ Google
+          Search en tiempo real</span>
+      </p>
+      <div class="input-row">
+        <input type="password" id="gemini-key-input" placeholder="AIza..." autocomplete="off">
+      </div>
+      <p class="settings-hint">Con Gemini el verificador usa Google Search en tiempo real. Key gratuita en <strong
+          style="color:var(--primary)">aistudio.google.com/apikey</strong>. Sin ella, usa GPT (datos hasta 2024).</p>
+
+      <hr class="settings-hr">
+      <div class="settings-row">
+        <div class="settings-col">
+          <p class="settings-label">Idioma</p>
+          <select id="language-select">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+            <option value="pt">Português</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+          </select>
+        </div>
+        <div class="settings-col">
+          <p class="settings-label">Intervalo Whisper (s)</p>
+          <input type="number" id="chunk-seconds-input" min="3" max="60" value="10" placeholder="10">
+        </div>
+      </div>
+      <p class="settings-hint">Intervalo de envío a Whisper. Mín: 3s, Máx: 60s.</p>
+
+      <hr class="settings-hr">
+      <p class="settings-label" style="margin-bottom:8px">Corrección Automática con IA</p>
+      <div class="settings-row">
+        <div class="settings-col">
+          <p class="settings-label">Intervalo CC (s)</p>
+          <input type="number" id="cc-autocorrect-interval" min="10" max="60" value="30" placeholder="30">
+        </div>
+        <div class="settings-col">
+          <p class="settings-label">Intervalo Whisper (s)</p>
+          <input type="number" id="audio-autocorrect-interval" min="10" max="60" value="30" placeholder="30">
+        </div>
+      </div>
+      <p class="settings-hint">Cada cuántos segundos se corrige el nuevo texto bruto. Mín: 10s, Máx: 60s.</p>
+
+      <hr class="settings-hr">
+      <p class="settings-label" style="margin-bottom:8px">Extracción de Declaraciones</p>
+      <div class="settings-row">
+        <div class="settings-col">
+          <p class="settings-label">Límite por búsqueda</p>
+          <input type="number" id="claims-limit-input" min="1" max="25" value="8" placeholder="8">
+        </div>
+      </div>
+      <p class="settings-hint">Máximo de declaraciones a extraer en cada análisis. Mín: 1, Máx: 25.</p>
+
+      <hr class="settings-hr">
+      <div class="verif-context-header" style="margin-bottom:6px">
+        <p class="settings-label" style="margin:0">Contexto del video</p>
+        <button class="btn btn-outline btn-sm" id="settings-auto-context-btn"
+          title="Llenar automáticamente desde YouTube">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          Auto-llenar
+        </button>
+      </div>
+      <textarea id="settings-video-context" class="verif-context-area" rows="30"
+        placeholder="Título, canal y tema del video. Se inyecta como contexto en la corrección con IA y en la extracción de declaraciones."></textarea>
+      <p class="settings-hint">Se actualiza automáticamente al abrir un video de YouTube.</p>
+
+      <hr class="settings-hr">
+      <p class="settings-label" style="margin-bottom:8px">Gestión de Datos</p>
+      <div class="settings-row">
+        <button class="btn btn-sm btn-outline" id="clear-all-channels-btn" style="width:100%">Limpiar transcripciones
+          (CC y Whisper)</button>
+      </div>
+    </div>
+
+    <!-- Hidden shared context (used internally by JS for claims extraction) -->
+    <textarea id="verif-context" style="display:none"></textarea>
 
     <!-- ══════════════ DISCURSO PANEL ══════════════ -->
     <div id="panel-discurso" class="panel hidden">
@@ -152,6 +198,23 @@
           </svg>
           Analizar
         </button>
+        <button class="icon-btn" id="clear-disc-btn" title="Limpiar análisis de discurso">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14H6L5 6" />
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+            <path d="M9 6V4h6v2" />
+          </svg>
+        </button>
+      </div>
+      <div class="auto-bar">
+        <label class="auto-toggle-label">
+          <input type="checkbox" id="disc-auto-toggle"> Auto-analizar cada
+        </label>
+        <input type="number" id="disc-auto-interval" min="30" max="300" value="60" class="auto-interval-input"> s
+        <span id="disc-auto-status" class="auto-status-text"></span>
       </div>
       <p id="disc-status" class="verif-status"></p>
       <div id="disc-results" class="disc-results hidden">
@@ -278,6 +341,9 @@
       <div id="subtab-cc-corrected" class="sub-panel hidden">
         <div class="correction-bar">
           <span id="cc-correct-status" class="status-text"></span>
+          <label class="auto-toggle-label" title="Corregir automáticamente cada X segundos">
+            <input type="checkbox" id="cc-autocorrect-toggle"> Auto
+          </label>
           <button class="btn btn-accent btn-sm" id="cc-correct-btn">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon
@@ -287,7 +353,7 @@
           </button>
         </div>
         <textarea id="cc-corrected" class="script-area"
-          placeholder="Haz clic en 'Corregir con IA' para mejorar el guión de subtítulos."></textarea>
+          placeholder="Haz clic en 'Corregir con IA' o activa Auto para corrección periódica."></textarea>
       </div>
     </div>
 
@@ -343,6 +409,9 @@
       <div id="subtab-audio-corrected" class="sub-panel hidden">
         <div class="correction-bar">
           <span id="audio-correct-status" class="status-text"></span>
+          <label class="auto-toggle-label" title="Corregir automáticamente cada X segundos">
+            <input type="checkbox" id="audio-autocorrect-toggle"> Auto
+          </label>
           <button class="btn btn-accent btn-sm" id="audio-correct-btn">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon
@@ -352,28 +421,12 @@
           </button>
         </div>
         <textarea id="audio-corrected" class="script-area"
-          placeholder="Haz clic en 'Corregir con IA' para mejorar el guión de audio."></textarea>
+          placeholder="Haz clic en 'Corregir con IA' o activa Auto para corrección periódica."></textarea>
       </div>
     </div>
 
     <!-- ══════════════ VERIFICADOR PANEL ══════════════ -->
     <div id="panel-verificador" class="panel hidden">
-      <div class="verif-context-block">
-        <div class="verif-context-header">
-          <label class="settings-label" for="verif-context">Contexto del video (opcional)</label>
-          <button class="btn btn-outline btn-sm" id="auto-context-btn"
-            title="Llenar con título y descripción del video">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            Auto-llenar
-          </button>
-        </div>
-        <textarea id="verif-context" class="verif-context-area"
-          placeholder="Ej: Discurso del presidente en la cumbre climática. Añadir contexto mejora la extracción de declaraciones verificables."></textarea>
-      </div>
       <div class="verif-toolbar">
         <select id="verif-source">
           <option value="cc-corrected">CC — Guión corregido</option>
@@ -397,6 +450,13 @@
           </svg>
           Verificar todo
         </button>
+        <button class="icon-btn" id="add-claim-btn" title="Añadir declaración manualmente">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
         <button class="icon-btn" id="clear-claims-btn" title="Limpiar declaraciones y reiniciar búsqueda">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -407,6 +467,18 @@
             <path d="M9 6V4h6v2" />
           </svg>
         </button>
+      </div>
+      <div class="auto-bar">
+        <label class="auto-toggle-label">
+          <input type="checkbox" id="claims-auto-toggle"> Auto-buscar
+        </label>
+        <label class="auto-toggle-label" style="margin-left:6px"
+          title="Verificará de inmediato cualquier declaración nueva que encuentre.">
+          <input type="checkbox" id="claims-autoverify-toggle"> + Auto-verificar
+        </label>
+        <span style="margin-left:4px">cada</span>
+        <input type="number" id="claims-auto-interval" min="10" max="60" value="30" class="auto-interval-input"> s
+        <span id="claims-auto-status" class="auto-status-text"></span>
       </div>
       <p id="claims-status" class="verif-status"></p>
       <div id="claims-list" class="claims-list"></div>

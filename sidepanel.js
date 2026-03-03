@@ -8,10 +8,8 @@ const ICON_PLAY = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16
 const ICON_PAUSE = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
 
 // ── DOM ──────────────────────────────────────────────────────
-const settingsToggleBtn = document.getElementById('settings-toggle-btn');
-const settingsPanel = document.getElementById('settings-panel');
 const apiKeyInput = document.getElementById('api-key-input');
-const perplexityKeyInput = document.getElementById('gemini-key-input');
+const geminiKeyInput = document.getElementById('gemini-key-input');
 const saveApiKeyBtn = document.getElementById('save-api-key-btn');
 const languageSelect = document.getElementById('language-select');
 const chunkSecondsInput = document.getElementById('chunk-seconds-input');
@@ -43,19 +41,40 @@ const verifContext = document.getElementById('verif-context');
 const extractClaimsBtn = document.getElementById('extract-claims-btn');
 const verifyAllBtn = document.getElementById('verify-all-btn');
 const clearClaimsBtn = document.getElementById('clear-claims-btn');
-const autoContextBtn = document.getElementById('auto-context-btn');
+const addClaimBtn = document.getElementById('add-claim-btn');
 const claimsStatus = document.getElementById('claims-status');
 const claimsList = document.getElementById('claims-list');
 
 const toast = document.getElementById('toast');
 const descBanner = document.getElementById('desc-banner');
-const descCloseBtn = document.getElementById('desc-close-btn');
+const settingsVideoContextArea = document.getElementById('settings-video-context');
+const settingsAutoContextBtn = document.getElementById('settings-auto-context-btn');
+
+// Auto-correction controls
+const ccAutocorrectToggle = document.getElementById('cc-autocorrect-toggle');
+const audioAutocorrectToggle = document.getElementById('audio-autocorrect-toggle');
+const ccAutocorrectIntervalInput = document.getElementById('cc-autocorrect-interval');
+const audioAutocorrectIntervalInput = document.getElementById('audio-autocorrect-interval');
+
+// Auto-claims controls
+const claimsAutoToggle = document.getElementById('claims-auto-toggle');
+const claimsAutoverifyToggle = document.getElementById('claims-autoverify-toggle');
+const claimsAutoIntervalInput = document.getElementById('claims-auto-interval');
+const claimsLimitInput = document.getElementById('claims-limit-input');
+const claimsAutoStatus = document.getElementById('claims-auto-status');
+const clearAllChannelsBtn = document.getElementById('clear-all-channels-btn');
+
+// Auto-discourse controls
+const discAutoToggle = document.getElementById('disc-auto-toggle');
+const discAutoIntervalInput = document.getElementById('disc-auto-interval');
+const discAutoStatus = document.getElementById('disc-auto-status');
+const clearDiscBtn = document.getElementById('clear-disc-btn');
 
 // ── Description banner ───────────────────────────────────────
-if (localStorage.getItem('descBannerClosed')) descBanner.classList.add('hidden');
-descCloseBtn.addEventListener('click', () => {
+// if (localStorage.getItem('descBannerClosed')) descBanner.classList.add('hidden');
+document.getElementById('desc-close-btn').addEventListener('click', () => {
     descBanner.classList.add('hidden');
-    localStorage.setItem('descBannerClosed', '1');
+    // localStorage.setItem('descBannerClosed', '1');
 });
 
 // ── Clear all claims & reset scan position ──────────────────
@@ -91,21 +110,32 @@ verifyAllBtn.addEventListener('click', async () => {
     claimsStatus.textContent = `✓ ${queue.length} declaración${queue.length > 1 ? 'es' : ''} verificada${queue.length > 1 ? 's' : ''}.`;
 });
 
+// ── Add empty claim manually ───────────────────────────────
+addClaimBtn.addEventListener('click', () => {
+    claims.push({ text: '', verdict: null, reasoning: '', searchUrl: '', sources: [] });
+    renderClaims();
+    claimsStatus.textContent = `${claims.length} declaración${claims.length > 1 ? 'es' : ''}. Edita y verifica.`;
 
+    // Focus the newest textarea
+    setTimeout(() => {
+        const textareas = claimsList.querySelectorAll('.claim-input');
+        if (textareas.length > 0) {
+            textareas[textareas.length - 1].focus();
+        }
+    }, 50);
+});
 
-
-// ── Auto-fill context from YouTube page ─────────────────────
-autoContextBtn.addEventListener('click', async () => {
-    autoContextBtn.disabled = true;
-    autoContextBtn.textContent = '⏳';
-
+// ── Auto-fill context from YouTube page (shared helper) ─────
+async function fetchVideoContext(targetTextarea, btn) {
+    const prevHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.textContent = '⏳';
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         if (!tab || !tab.url?.includes('youtube.com/watch')) {
             showToast('Abre un video de YouTube primero');
             return;
         }
-
         const results = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => {
@@ -117,28 +147,37 @@ autoContextBtn.addEventListener('click', async () => {
                 return { title, channel, desc };
             }
         });
-
         const { title, channel, desc } = results[0].result;
         const parts = [];
         if (title) parts.push(`Título: ${title}`);
         if (channel) parts.push(`Canal: ${channel}`);
         if (desc) parts.push(`Descripción: ${desc}`);
-
         if (parts.length === 0) { showToast('No se pudo obtener info del video'); return; }
-
-        verifContext.value = parts.join('\n');
-        showToast('Contexto actualizado con la info del video ✓');
-
+        const ctx = parts.join('\n');
+        // Update both context inputs simultaneously
+        settingsVideoContextArea.value = ctx;
+        verifContext.value = ctx;
+        chrome.storage.local.set({ videoContext: ctx });
+        showToast('Contexto actualizado ✓');
     } catch (err) {
         showToast('Error: ' + err.message);
     } finally {
-        autoContextBtn.disabled = false;
-        autoContextBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/>
-          <line x1="12" y1="3" x2="12" y2="15"/>
-        </svg> Auto-llenar`;
+        btn.disabled = false;
+        btn.innerHTML = prevHTML;
     }
+}
+
+// ── Auto-fill context from settings panel btn ────────────────
+settingsAutoContextBtn.addEventListener('click', () => fetchVideoContext(settingsVideoContextArea, settingsAutoContextBtn));
+
+// ── Keep both context textareas in sync ──────────────────────
+settingsVideoContextArea.addEventListener('input', () => {
+    verifContext.value = settingsVideoContextArea.value;
+    chrome.storage.local.set({ videoContext: settingsVideoContextArea.value });
+});
+verifContext.addEventListener('input', () => {
+    settingsVideoContextArea.value = verifContext.value;
+    chrome.storage.local.set({ videoContext: verifContext.value });
 });
 
 
@@ -163,22 +202,39 @@ let audioActiveSubTab = 'raw';
 let claims = [];  // [{text, verdict, reasoning, searchUrl, sources:[]}]
 let lastScannedPos = {};  // {sourceId: charOffset} — for incremental extraction
 
+// ── Incremental correction state ─────────────────────────────
+// Tracks how many raw chars have already been corrected for each source.
+// key: 'cc' | 'audio'
+let lastCorrectedRawPos = { cc: 0, audio: 0 };
+let ccAutocorrectTimer = null;
+let audioAutocorrectTimer = null;
+let claimsAutoTimer = null;
+let discAutoTimer = null;
+
 // ── Init ─────────────────────────────────────────────────────
 ccToggleBtn.innerHTML = ICON_PLAY;
 audioToggleBtn.innerHTML = ICON_PLAY;
 
 chrome.storage.local.get(
-    ['openaiApiKey', 'geminiKey', 'transcriptLang', 'chunkSeconds', 'ccScript', 'ccActive'],
+    ['openaiApiKey', 'geminiKey', 'transcriptLang', 'chunkSeconds', 'ccScript', 'ccActive', 'videoContext', 'claimsLimit'],
     (data) => {
         if (data.openaiApiKey) apiKeyInput.value = data.openaiApiKey;
-        if (data.geminiKey) perplexityKeyInput.value = data.geminiKey;
+        if (data.geminiKey) geminiKeyInput.value = data.geminiKey;
         if (data.transcriptLang) languageSelect.value = data.transcriptLang;
         if (data.ccScript) {
             ccScriptArea.value = data.ccScript;
             ccExtensionScript = data.ccScript;
         }
+        if (data.videoContext) {
+            settingsVideoContextArea.value = data.videoContext;
+            verifContext.value = data.videoContext;
+        }
         const s = parseInt(data.chunkSeconds, 10);
-        if (s >= 3 && s <= 20) { chunkSecondsInput.value = s; chunkMs = s * 1000; }
+        if (s >= 3 && s <= 60) { chunkSecondsInput.value = s; chunkMs = s * 1000; }
+
+        if (data.claimsLimit) {
+            claimsLimitInput.value = data.claimsLimit;
+        }
 
         // Restore CC recording state visually if it was active
         if (data.ccActive) {
@@ -188,15 +244,42 @@ chrome.storage.local.get(
     }
 );
 
-// ── Settings ─────────────────────────────────────────────────
-settingsToggleBtn.addEventListener('click', () => settingsPanel.classList.toggle('hidden'));
+// Auto-fetch video context silently when the panel opens on a YouTube watch page
+chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    if (tab?.url?.includes('youtube.com/watch')) {
+        chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => {
+                const title = document.querySelector('h1.ytd-watch-metadata yt-formatted-string')?.textContent?.trim()
+                    || document.title.replace(' - YouTube', '').trim();
+                const channel = document.querySelector('#channel-name a, ytd-channel-name a')?.textContent?.trim() || '';
+                const desc = document.querySelector('#description-inline-expander, #description yt-formatted-string, #description')
+                    ?.textContent?.trim().substring(0, 400) || '';
+                return { title, channel, desc };
+            }
+        }).then(results => {
+            const { title, channel, desc } = results[0].result;
+            const parts = [];
+            if (title) parts.push(`Título: ${title}`);
+            if (channel) parts.push(`Canal: ${channel}`);
+            if (desc) parts.push(`Descripción: ${desc}`);
+            if (parts.length === 0) return;
+            const ctx = parts.join('\n');
+            settingsVideoContextArea.value = ctx;
+            verifContext.value = ctx;
+            chrome.storage.local.set({ videoContext: ctx });
+        }).catch(() => { /* silently ignore */ });
+    }
+});
+
+// ── Settings handled by tab system (panel-config) ───────────
 
 saveApiKeyBtn.addEventListener('click', () => {
     const key = apiKeyInput.value.trim();
-    const pkey = perplexityKeyInput.value.trim();
+    const gkey = geminiKeyInput.value.trim();
     const lang = languageSelect.value;
     const sec = clampChunk();
-    chrome.storage.local.set({ openaiApiKey: key, geminiKey: pkey, transcriptLang: lang, chunkSeconds: sec });
+    chrome.storage.local.set({ openaiApiKey: key, geminiKey: gkey, transcriptLang: lang, chunkSeconds: sec });
     chunkMs = sec * 1000;
     showToast('Configuración guardada');
 });
@@ -210,11 +293,27 @@ chunkSecondsInput.addEventListener('change', () => {
     chunkMs = s * 1000;
 });
 
+claimsLimitInput.addEventListener('change', () => {
+    let v = parseInt(claimsLimitInput.value, 10);
+    if (isNaN(v) || v < 1) v = 1;
+    if (v > 25) v = 25;
+    claimsLimitInput.value = v;
+    chrome.storage.local.set({ claimsLimit: v });
+});
+
 function clampChunk() {
     let v = parseInt(chunkSecondsInput.value, 10);
     if (isNaN(v) || v < 3) v = 3;
-    if (v > 20) v = 20;
+    if (v > 60) v = 60;
     chunkSecondsInput.value = v;
+    return v;
+}
+
+function clampAutocorrectInterval(input) {
+    let v = parseInt(input.value, 10);
+    if (isNaN(v) || v < 10) v = 10;
+    if (v > 60) v = 60;
+    input.value = v;
     return v;
 }
 
@@ -283,6 +382,7 @@ ccClearBtn.addEventListener('click', () => {
     ccCorrectedArea.value = '';
     ccCorrectStatus.textContent = '';
     ccExtensionScript = '';       // reset tracker
+    lastCorrectedRawPos.cc = 0;  // reset incremental correction position
     ccRecording = false;
     updateCCUI();
     showToast('Texto limpiado');
@@ -304,7 +404,19 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 ccCorrectBtn.addEventListener('click', () =>
-    correctWithGPT(ccScriptArea.value.trim(), ccCorrectedArea, ccCorrectStatus, ccCorrectBtn));
+    correctWithGPTIncremental('cc', ccScriptArea, ccCorrectedArea, ccCorrectStatus, ccCorrectBtn));
+
+// ── Auto-correction for CC ────────────────────────────────────
+ccAutocorrectToggle.addEventListener('change', () => {
+    clearInterval(ccAutocorrectTimer);
+    if (ccAutocorrectToggle.checked) {
+        const ms = clampAutocorrectInterval(ccAutocorrectIntervalInput) * 1000;
+        ccAutocorrectTimer = setInterval(() => {
+            correctWithGPTIncremental('cc', ccScriptArea, ccCorrectedArea, ccCorrectStatus, ccCorrectBtn, true);
+        }, ms);
+        showToast(`Auto-corrección CC cada ${ccAutocorrectIntervalInput.value}s`);
+    }
+});
 
 // ══════════════════════════════════════════════════════════════
 //  AUDIO MODE (Whisper)
@@ -318,8 +430,8 @@ audioToggleBtn.addEventListener('click', async () => {
 async function startAudioCapture() {
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) {
-        showToast('Guarda tu API Key de OpenAI en ⚙ Configuración');
-        settingsPanel.classList.remove('hidden');
+        showToast('Guarda tu API Key de OpenAI → Configuración ⚙️');
+        document.getElementById('settings-toggle-btn').click();
         return;
     }
     setAudioStatus('Solicitando permiso de captura...');
@@ -434,20 +546,126 @@ audioClearBtn.addEventListener('click', () => {
     audioScriptArea.value = '';
     audioCorrectedArea.value = '';
     audioCorrectStatus.textContent = '';
+    lastCorrectedRawPos.audio = 0;  // reset incremental correction position
     showToast('Texto limpiado');
 });
 
 audioCorrectBtn.addEventListener('click', () =>
-    correctWithGPT(audioScriptArea.value.trim(), audioCorrectedArea, audioCorrectStatus, audioCorrectBtn));
+    correctWithGPTIncremental('audio', audioScriptArea, audioCorrectedArea, audioCorrectStatus, audioCorrectBtn));
+
+// ── Auto-correction for Audio ─────────────────────────────────
+audioAutocorrectToggle.addEventListener('change', () => {
+    clearInterval(audioAutocorrectTimer);
+    if (audioAutocorrectToggle.checked) {
+        const ms = clampAutocorrectInterval(audioAutocorrectIntervalInput) * 1000;
+        audioAutocorrectTimer = setInterval(() => {
+            correctWithGPTIncremental('audio', audioScriptArea, audioCorrectedArea, audioCorrectStatus, audioCorrectBtn, true);
+        }, ms);
+        showToast(`Auto-corrección Whisper cada ${audioAutocorrectIntervalInput.value}s`);
+    }
+});
 
 // ══════════════════════════════════════════════════════════════
-//  GPT CORRECTION (shared)
+//  INCREMENTAL GPT CORRECTION (shared)
 // ══════════════════════════════════════════════════════════════
 
+// Merges corrected text by overlapping the last N words at the boundary.
+// This prevents duplicates while also healing any split sentences.
+function mergeWithOverlap(existingCorrected, newCorrectedChunk, overlapWords = 100) {
+    if (!existingCorrected) return newCorrectedChunk;
+    if (!newCorrectedChunk) return existingCorrected;
+
+    // Use word arrays ONLY for overlap detection — never for reconstruction.
+    const existingWords = existingCorrected.trim().split(/\s+/);
+    const newWords = newCorrectedChunk.trim().split(/\s+/);
+
+    // Find the longest suffix of existing that matches a prefix of the new chunk.
+    let overlapCount = 0;
+    const maxCheck = Math.min(overlapWords, existingWords.length, newWords.length);
+    for (let testLen = 1; testLen <= maxCheck; testLen++) {
+        const suffix = existingWords.slice(-testLen).join(' ').toLowerCase();
+        const prefix = newWords.slice(0, testLen).join(' ').toLowerCase();
+        if (suffix === prefix) overlapCount = testLen;
+    }
+
+    // Surgically remove the last `overlapCount` words from the END of the raw
+    // string — this preserves every \n and paragraph break in the body.
+    let base = existingCorrected.trimEnd();
+    for (let i = 0; i < overlapCount; i++) {
+        // Remove the last non-whitespace token (word) from the string tail.
+        base = base.replace(/\s*\S+\s*$/, '');
+    }
+
+    // Always join with a paragraph break so GPT's internal \n\n are kept.
+    return base.trimEnd() + (base.trimEnd() ? '\n\n' : '') + newCorrectedChunk.trim();
+}
+
+// correctWithGPTIncremental: only sends raw text that hasn't been corrected yet.
+// Then merges the result into the corrected area.
+async function correctWithGPTIncremental(sourceKey, rawArea, targetArea, statusEl, btnEl, silent = false) {
+    const fullRaw = rawArea.value;
+    const from = lastCorrectedRawPos[sourceKey] || 0;
+    const newRaw = fullRaw.substring(from).trim();
+
+    if (!newRaw) {
+        if (!silent) showToast('No hay texto nuevo para corregir');
+        return;
+    }
+    const apiKey = apiKeyInput.value.trim();
+    if (!apiKey) { showToast('Necesitas una API Key → Configuración ⚙️'); document.getElementById('settings-toggle-btn').click(); return; }
+
+    btnEl.disabled = true;
+    statusEl.textContent = 'Corrigiendo...';
+
+    try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [
+                    {
+                        role: 'system', content: `Eres un editor profesional de transcripciones. Tu tarea:
+1. Corrige errores de transcripción obvios y errores de pronunciación.
+2. Añade puntuación correcta.
+3. Elimina repeticiones y muletillas excesivas.
+4. Organiza en párrafos coherentes.
+5. No agregues información nueva ni cambies el significado.
+${settingsVideoContextArea.value.trim() ? `Contexto del contenido: ${settingsVideoContextArea.value.trim()}\n` : ''}Devuelve únicamente el texto corregido, sin comentarios.`
+                    },
+                    { role: 'user', content: newRaw }
+                ],
+                temperature: 0.3
+            })
+        });
+        const data = await res.json();
+        if (!res.ok) { statusEl.textContent = 'Error: ' + (data?.error?.message || res.status); return; }
+        const correctedChunk = data.choices?.[0]?.message?.content?.trim() || '';
+
+        if (correctedChunk) {
+            // Merge with existing corrected text using 7-word overlap
+            const merged = mergeWithOverlap(targetArea.value, correctedChunk, 100);
+            targetArea.value = merged;
+            targetArea.scrollTop = targetArea.scrollHeight;
+
+            // Advance the raw pointer: we snapshot the raw length at time of request
+            lastCorrectedRawPos[sourceKey] = from + newRaw.length;
+        }
+
+        statusEl.textContent = '✓ Listo';
+        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+    } catch (err) {
+        statusEl.textContent = 'Error de red: ' + err.message;
+    } finally {
+        btnEl.disabled = false;
+    }
+}
+
+// Legacy full-text correction (kept for potential future use)
 async function correctWithGPT(rawText, targetArea, statusEl, btnEl) {
     if (!rawText) { showToast('No hay texto para corregir'); return; }
     const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) { showToast('Necesitas una API Key en ⚙'); settingsPanel.classList.remove('hidden'); return; }
+    if (!apiKey) { showToast('Necesitas una API Key → Configuración ⚙️'); document.getElementById('settings-toggle-btn').click(); return; }
 
     btnEl.disabled = true;
     statusEl.textContent = 'Corrigiendo...';
@@ -509,7 +727,9 @@ extractClaimsBtn.addEventListener('click', async () => {
     if (!newText) { showToast('No hay texto nuevo desde la última búsqueda'); return; }
 
     const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) { showToast('Necesitas una API Key en ⚙'); settingsPanel.classList.remove('hidden'); return; }
+    if (!apiKey) { showToast('Necesitas una API Key → Configuración ⚙️'); document.getElementById('settings-toggle-btn').click(); return; }
+
+    const curLimit = parseInt(claimsLimitInput.value, 10) || 8;
 
     extractClaimsBtn.disabled = true;
     claimsStatus.textContent = 'Extrayendo declaraciones verificables...';
@@ -523,10 +743,16 @@ extractClaimsBtn.addEventListener('click', async () => {
                 messages: [
                     {
                         role: 'system',
-                        content: `Extrae declaraciones verificables del texto. Una declaración verificable es una afirmación concreta sobre hechos, datos, cifras o eventos.
-NO incluyas opiniones, intenciones, preguntas ni afirmaciones vagas.
-${verifContext.value.trim() ? `Contexto del documento: ${verifContext.value.trim()}\n` : ''}Responde ÚNICAMENTE con un objeto JSON: {"claims": ["declaración 1", "declaración 2", ...]}
-Máximo 10 declaraciones por llamada.`
+                        content: `Eres un asistente experto en análisis de discurso y extracción de afirmaciones.
+Tu trabajo es leer el texto y extraer CUALQUIER frase, idea o declaración que afirme algo sobre la realidad, no tomes declaraciones que sean opiniones sobre la realidad o apreciaciones propias.
+
+INSTRUCCIONES CLAVE:
+1. Extrae TODO aquello que suene a una afirmación, dato, anécdota, evento, o acusación (ej. "nuestro país está en ruinas", "la política X fue un éxito", "ellos robaron el dinero"). NO importa si carece de números o cifras exactas.
+2. Si alguien afirma algo sobre el estado de las cosas, extráelo. Las afirmaciones cualitativas (sin números) también ameritan fact-checking o análisis de discurso.
+3. Ignora únicamente: saludos, despedidas, y preguntas abiertas.
+4. Contexto del video: "${verifContext.value.trim()}"
+5. Devuelve UNICAMENTE un objeto JSON con este formato exacto: {"claims": ["afirmación 1", "afirmación 2", ...]}.
+6. Máximo ${curLimit} declaraciones. Si el texto es muy corto o puramente un saludo, devuelve {"claims": []}.`
                     },
                     { role: 'user', content: newText }
                 ],
@@ -542,8 +768,8 @@ Máximo 10 declaraciones por llamada.`
         const newClaims = (parsed.claims || []).map(c => ({ text: c, verdict: null, reasoning: '', searchUrl: '', sources: [] }));
 
         if (newClaims.length === 0) {
-            claimsStatus.textContent = 'No se encontraron declaraciones nuevas en el texto.';
-            lastScannedPos[sourceId] = fullText.length;  // advance anyway
+            claimsStatus.textContent = 'No se encontraron declaraciones verificables en el texto nuevo.';
+            // Don't advance lastScannedPos if zero found, so user can try again if they add more text
             return;
         }
 
@@ -551,13 +777,35 @@ Máximo 10 declaraciones por llamada.`
         claims = claims.concat(newClaims);
         lastScannedPos[sourceId] = fullText.length;
 
-        claimsStatus.textContent = `${claims.length} declaración${claims.length > 1 ? 'es' : ''} en total (+${newClaims.length} nuevas). Edita y verifica.`;
+        claimsStatus.textContent = `${claims.length} declaración${claims.length > 1 ? 'es' : ''} en total(+${newClaims.length} nuevas).Edita y verifica.`;
         renderClaims();
+
+        if (claimsAutoverifyToggle && claimsAutoverifyToggle.checked) {
+            setTimeout(() => verifyAllBtn.click(), 100);
+        }
 
     } catch (err) {
         claimsStatus.textContent = 'Error: ' + err.message;
     } finally {
         extractClaimsBtn.disabled = false;
+    }
+});
+
+// ── Auto-claims extraction ─────────────────────────────────────────
+claimsAutoToggle.addEventListener('change', () => {
+    clearInterval(claimsAutoTimer);
+    if (claimsAutoToggle.checked) {
+        let v = parseInt(claimsAutoIntervalInput.value, 10);
+        if (isNaN(v) || v < 10) v = 10;
+        if (v > 60) v = 60;
+        claimsAutoIntervalInput.value = v;
+        claimsAutoStatus.textContent = `Cada ${v}s`;
+        claimsAutoTimer = setInterval(() => {
+            extractClaimsBtn.click();
+        }, v * 1000);
+        showToast(`Auto - búsqueda de declaraciones cada ${v}s`);
+    } else {
+        claimsAutoStatus.textContent = '';
     }
 });
 
@@ -581,7 +829,7 @@ function deleteClaim(index) {
     claims.splice(index, 1);
     renderClaims();
     claimsStatus.textContent = claims.length
-        ? `${claims.length} declaración${claims.length > 1 ? 'es' : ''}. Edita y verifica.`
+        ? `${claims.length} declaración${claims.length > 1 ? 'es' : ''}.Edita y verifica.`
         : 'No hay más declaraciones.';
 }
 
@@ -591,7 +839,7 @@ function buildClaimCard(claim, i) {
         'MAYORMENTE_VERDADERO': { cls: 'verdict-mostly-true', label: '◐ Mayormente cierta' },
         'MAYORMENTE_FALSO': { cls: 'verdict-mostly-false', label: '◑ Mayormente falsa' },
         'FALSO': { cls: 'verdict-false', label: '✕ Falsa' },
-        'NO_DETERMINADO': { cls: 'verdict-unknown-result', label: '? No determinada' },
+        'NO_DETERMINADO': { cls: 'verdict-unknown-result', label: 'Desconocido' },
     };
     const v = VERDICTS[claim.verdict] || { cls: 'verdict-pending', label: 'Sin verificar' };
 
@@ -609,12 +857,12 @@ function buildClaimCard(claim, i) {
 
     const searchHtml = claim.searchUrl
         ? `<a class="claim-search-link" href="${claim.searchUrl}" target="_blank">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
         Buscar en Google
       </a>` : '';
 
     return `
-    <div class="claim-header">
+      <div class="claim-header">
       <span class="claim-num">#${i + 1}</span>
       <span class="verdict-badge ${v.cls}">${v.label}</span>
       <div class="claim-actions">
@@ -627,11 +875,11 @@ function buildClaimCard(claim, i) {
         </button>
       </div>
     </div>
-    <textarea class="claim-input" rows="3" data-index="${i}">${claim.text}</textarea>
+            <textarea class="claim-input" rows="3" data-index="${i}">${claim.text}</textarea>
     ${reasoningHtml}
     ${sourcesHtml}
-    <div class="claim-footer">${searchHtml}</div>
-  `;
+        <div class="claim-footer">${searchHtml}</div>
+        `;
 }
 
 async function verifyClaim(index) {
@@ -643,12 +891,12 @@ async function verifyClaim(index) {
     const claimText = claims[index].text;
     if (!claimText) { showToast('La declaración está vacía'); return; }
 
-    const perplexityKey = perplexityKeyInput.value.trim();
+    const geminiKey = geminiKeyInput.value.trim();
     const openaiKey = apiKeyInput.value.trim();
 
-    if (!perplexityKey && !openaiKey) {
-        showToast('Necesitas al menos una API Key en ⚙');
-        settingsPanel.classList.remove('hidden');
+    if (!geminiKey && !openaiKey) {
+        showToast('Necesitas al menos una API Key → Configuración');
+        document.getElementById('settings-toggle-btn').click();
         return;
     }
 
@@ -656,8 +904,8 @@ async function verifyClaim(index) {
     btn.textContent = '...';
 
     try {
-        if (perplexityKey) {
-            await verifyWithGemini(index, claimText, perplexityKey);
+        if (geminiKey) {
+            await verifyWithGemini(index, claimText, geminiKey);
         } else {
             await verifyWithGPT(index, claimText, openaiKey);
         }
@@ -672,10 +920,20 @@ async function verifyClaim(index) {
 // Gemini 2.5 Flash + Google Search grounding — búsqueda web en tiempo real
 async function verifyWithGemini(index, claimText, apiKey) {
     const systemInstruction =
-        `Eres un verificador de hechos experto. Usa Google Search para encontrar información actualizada.
-Responde EXCLUSIVAMENTE con este JSON (sin bloques de código ni texto extra):
-{"veredicto":"VERDADERO|MAYORMENTE_VERDADERO|MAYORMENTE_FALSO|FALSO|NO_DETERMINADO","razonamiento":"2-3 oraciones con fuentes concretas.","busqueda":"query para Google"}
-REGLA: Usa NO_DETERMINADO SOLO si es absolutamente imposible determinar la veracidad. Prefiere MAYORMENTE_VERDADERO o MAYORMENTE_FALSO antes que NO_DETERMINADO.`;
+        `Eres el motor principal de factualidad de Fact-Check Vivo, una herramienta de análisis y verificación en tiempo real de videos de YouTube.
+Tu tarea es analizar la declaración dada, usando herramientas de búsqueda en vivo.
+
+CONTEXTO DEL VIDEO DE ORIGEN (usa esta información para acotar tus búsquedas si la declaración es ambigua):
+"${verifContext.value.trim() || 'Sin contexto disponible'}"
+
+INSTRUCCIONES DE FACTUALIDAD:
+1. Las figuras retóricas o exageraciones obvias pueden ser "FALSO" o "MAYORMENTE_FALSO" si se usan para informar mal, pero valora el contexto.
+2. Si una cifra es conceptualmente correcta pero difiere ligeramente (ej. 3.9M vs 4M), califícala como "MAYORMENTE_VERDADERO".
+3. Busca evidencia sólida.
+
+Responde EXCLUSIVAMENTE con este JSON (sin formato Markdown adicional):
+{ "veredicto": "VERDADERO|MAYORMENTE_VERDADERO|MAYORMENTE_FALSO|FALSO|NO_DETERMINADO", "razonamiento": "Justificación de 2-3 oraciones citando datos exactos y fuentes concretas.", "busqueda": "query de búsqueda que utilizaste" }
+REGLA: Usa NO_DETERMINADO SOLO si es verdaderamente imposible determinar la veracidad, incluso después de buscar.`;
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     const res = await fetch(url, {
@@ -720,10 +978,15 @@ async function verifyWithGPT(index, claimText, apiKey) {
             messages: [
                 {
                     role: 'system',
-                    content: `Eres un verificador de hechos. Analiza la declaración con tu base de conocimiento.
+                    content: `Eres el motor principal de factualidad de Fact-Check Vivo, una herramienta de análisis y verificación de YouTube.
+Tu tarea es analizar la declaración dada usando tu base de datos y conocimiento previo.
+
+CONTEXTO DEL VIDEO DE ORIGEN:
+"${verifContext.value.trim() || 'Sin contexto disponible'}"
+
 Responde EXCLUSIVAMENTE con este objeto JSON:
-{"veredicto":"VERDADERO|MAYORMENTE_VERDADERO|MAYORMENTE_FALSO|FALSO|NO_DETERMINADO","razonamiento":"2-3 oraciones con evidencia.","busqueda":"query para Google"}
-REGLA: Usa NO_DETERMINADO SOLO si es absolutamente imposible. Prefiere MAYORMENTE_VERDADERO o MAYORMENTE_FALSO. Si la declaración es sobre eventos muy recientes, indica el límite de tus datos.`
+{"veredicto":"VERDADERO|MAYORMENTE_VERDADERO|MAYORMENTE_FALSO|FALSO|NO_DETERMINADO","razonamiento":"Justificación de 2-3 oraciones detallando qué evidencias históricas, conceptuales o factuales apoyan tu veredicto.","busqueda":"término clave sugerido para Google"}
+REGLA: Prefiere MAYORMENTE_VERDADERO o MAYORMENTE_FALSO. Usa NO_DETERMINADO solo si necesitas datos en tiempo real de los que careces. Si la afirmación contradice el consenso histórico o científico comprobado, es FALSO.`
                 },
                 { role: 'user', content: `Declaración: "${claimText}"` }
             ],
@@ -756,6 +1019,38 @@ function showToast(msg) {
 //  DISCOURSE ANALYSIS MODULE
 // 
 
+if (clearAllChannelsBtn) {
+    clearAllChannelsBtn.addEventListener('click', () => {
+        if (confirm('¿Estás seguro de que quieres borrar TODAS las transcripciones, contexto y declaraciones?')) {
+            ccScriptArea.value = '';
+            ccExtensionScript = '';
+            ccCorrectedArea.value = '';
+            audioScriptArea.value = '';
+            audioCorrectedArea.value = '';
+            chrome.storage.local.set({ ccScript: '' });
+            verifContext.value = '';
+            settingsVideoContextArea.value = '';
+            chrome.storage.local.set({ videoContext: '' });
+
+            claims = [];
+            lastScannedPos = {};
+            claimsList.innerHTML = '';
+            claimsStatus.textContent = '';
+            lastCorrectedRawPos = { cc: 0, audio: 0 };
+
+            showToast('Todos los datos han sido reiniciados.');
+        }
+    });
+}
+
+if (clearDiscBtn) {
+    clearDiscBtn.addEventListener('click', () => {
+        discResults.classList.add('hidden');
+        discStatus.textContent = 'Análisis borrado.';
+        showToast('Análisis borrado');
+    });
+}
+
 const discSource = document.getElementById('disc-source');
 const analyzeDiscBtn = document.getElementById('analyze-disc-btn');
 const discStatus = document.getElementById('disc-status');
@@ -779,7 +1074,7 @@ analyzeDiscBtn.addEventListener('click', async () => {
     const text = getSourceText(discSource.value).trim();
     if (!text) { discStatus.textContent = 'El texto fuente esta vacio.'; return; }
     const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) { showToast('Necesitas tu API Key de OpenAI en Configuracion'); settingsPanel.classList.remove('hidden'); return; }
+    if (!apiKey) { showToast('Necesitas tu API Key de OpenAI → Configuración ⚙️'); document.getElementById('settings-toggle-btn').click(); return; }
     analyzeDiscBtn.disabled = true;
     discStatus.textContent = 'Analizando discurso con IA...';
     discResults.classList.add('hidden');
@@ -800,6 +1095,24 @@ analyzeDiscBtn.addEventListener('click', async () => {
         discStatus.textContent = 'Error: ' + err.message;
     } finally {
         analyzeDiscBtn.disabled = false;
+    }
+});
+
+// ── Auto-discourse analysis ────────────────────────────────────────────
+discAutoToggle.addEventListener('change', () => {
+    clearInterval(discAutoTimer);
+    if (discAutoToggle.checked) {
+        let v = parseInt(discAutoIntervalInput.value, 10);
+        if (isNaN(v) || v < 30) v = 30;
+        if (v > 300) v = 300;
+        discAutoIntervalInput.value = v;
+        discAutoStatus.textContent = `Cada ${v}s`;
+        discAutoTimer = setInterval(() => {
+            analyzeDiscBtn.click();
+        }, v * 1000);
+        showToast(`Auto-análisis de discurso cada ${v}s`);
+    } else {
+        discAutoStatus.textContent = '';
     }
 });
 
