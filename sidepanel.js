@@ -168,7 +168,7 @@ ccToggleBtn.innerHTML = ICON_PLAY;
 audioToggleBtn.innerHTML = ICON_PLAY;
 
 chrome.storage.local.get(
-    ['openaiApiKey', 'geminiKey', 'transcriptLang', 'chunkSeconds', 'ccScript'],
+    ['openaiApiKey', 'geminiKey', 'transcriptLang', 'chunkSeconds', 'ccScript', 'ccActive'],
     (data) => {
         if (data.openaiApiKey) apiKeyInput.value = data.openaiApiKey;
         if (data.geminiKey) perplexityKeyInput.value = data.geminiKey;
@@ -179,6 +179,12 @@ chrome.storage.local.get(
         }
         const s = parseInt(data.chunkSeconds, 10);
         if (s >= 3 && s <= 20) { chunkSecondsInput.value = s; chunkMs = s * 1000; }
+
+        // Restore CC recording state visually if it was active
+        if (data.ccActive) {
+            ccRecording = true;
+            updateCCUI();
+        }
     }
 );
 

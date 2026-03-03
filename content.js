@@ -9,6 +9,18 @@ let fullScript = "";
 let lastProcessedText = "";
 let subtitleObserver = null;
 
+// ── Init: check if recording was already active (e.g. page navigation) ──
+chrome.storage.local.get(['ccActive', 'ccScript'], (data) => {
+    if (data.ccScript) {
+        fullScript = data.ccScript;
+        lastProcessedText = '';
+    }
+    if (data.ccActive) {
+        isRecording = true;
+        startObserver();
+    }
+});
+
 // --- Listen to storage for start/stop/clear commands ---
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
