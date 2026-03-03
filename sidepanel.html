@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fact-Check Vivo</title>
+  <title>VerifAI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
@@ -17,9 +17,9 @@
     <!-- ── Header ── -->
     <header class="header">
       <div class="header-brand">
-        <img class="header-brand-logo" src="icons/icon.png" alt="Fact-Check Vivo">
+        <img class="header-brand-logo" src="icons/icon.png" alt="VerifAI">
         <div class="header-brand-text">
-          <span class="header-brand-name">Fact-Check Vivo</span>
+          <span class="header-brand-name">VerifAI</span>
           <span class="header-brand-sub">GovLab · Universidad de la Sabana</span>
         </div>
       </div>
@@ -49,8 +49,8 @@
           stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;color:var(--primary)">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
         </svg>
-        <span>Extrae el guión de videos de YouTube, corrígelo con IA y verifica automáticamente las declaraciones con
-          Google Search en tiempo real.</span>
+        <span>VerifAI extrae el guión de videos de YouTube, lo corrige con IA y verifica declaraciones con Google Search
+          en tiempo real.</span>
       </div>
       <button id="desc-close-btn" class="desc-close-btn" title="Cerrar">✕</button>
     </div>
@@ -152,7 +152,7 @@
         <!-- Tono -->
         <div class="disc-card" id="disc-card-tono">
           <div class="disc-card-header">
-            <span class="disc-card-icon">🎭</span>
+            <span class="disc-card-icon disc-icon-tone">T</span>
             <span class="disc-card-title">Tono y Sentimiento</span>
             <span class="disc-tone-badge" id="disc-tone-badge"></span>
           </div>
@@ -169,7 +169,7 @@
         <!-- Emociones -->
         <div class="disc-card" id="disc-card-emociones">
           <div class="disc-card-header">
-            <span class="disc-card-icon">❤️</span>
+            <span class="disc-card-icon disc-icon-emo">E</span>
             <span class="disc-card-title">Emociones Dominantes</span>
           </div>
           <div class="disc-emotions-list" id="disc-emotions-list"></div>
@@ -178,7 +178,7 @@
         <!-- Falacias -->
         <div class="disc-card" id="disc-card-falacias">
           <div class="disc-card-header">
-            <span class="disc-card-icon">⚠️</span>
+            <span class="disc-card-icon disc-icon-fal">F</span>
             <span class="disc-card-title">Falacias Lógicas</span>
             <span class="disc-count-badge" id="disc-falacias-count"></span>
           </div>
@@ -188,7 +188,7 @@
         <!-- Eufemismos -->
         <div class="disc-card" id="disc-card-eufemismos">
           <div class="disc-card-header">
-            <span class="disc-card-icon">💬</span>
+            <span class="disc-card-icon disc-icon-euf">L</span>
             <span class="disc-card-title">Eufemismos y Disfemismos</span>
           </div>
           <div class="disc-chips" id="disc-euf-list"></div>
@@ -197,7 +197,7 @@
         <!-- Polarización -->
         <div class="disc-card" id="disc-card-polarizacion">
           <div class="disc-card-header">
-            <span class="disc-card-icon">⚡</span>
+            <span class="disc-card-icon disc-icon-pol">P</span>
             <span class="disc-card-title">Polarización</span>
             <span class="disc-pol-badge" id="disc-pol-badge"></span>
           </div>
@@ -208,7 +208,7 @@
         <!-- Palabras clave -->
         <div class="disc-card" id="disc-card-keywords">
           <div class="disc-card-header">
-            <span class="disc-card-icon">🔑</span>
+            <span class="disc-card-icon disc-icon-kw">K</span>
             <span class="disc-card-title">Palabras Clave</span>
           </div>
           <div class="disc-keywords" id="disc-keywords-list"></div>
@@ -217,7 +217,7 @@
         <!-- Encuadre -->
         <div class="disc-card" id="disc-card-encuadre">
           <div class="disc-card-header">
-            <span class="disc-card-icon">🖼️</span>
+            <span class="disc-card-icon disc-icon-enc">M</span>
             <span class="disc-card-title">Encuadre (Framing)</span>
             <span class="disc-frame-badge" id="disc-frame-badge"></span>
           </div>

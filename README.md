@@ -1,13 +1,13 @@
-# Fact-Check Vivo
+# VerifAI
 
-> Extensión de Chrome para verificación de hechos en tiempo real sobre videos de YouTube.  
+> Extensión de Chrome para verificación de hechos y análisis de discurso en tiempo real sobre videos de YouTube.  
 > Desarrollada por el **GovLab** de la **Universidad de la Sabana** — Juan Sotelo Aguilar.
 
 ---
 
 ## ¿Qué hace?
 
-**Fact-Check Vivo** combina transcripción automática, corrección con IA y verificación de declaraciones en tiempo real en una sola extensión de navegador. Pensada para periodistas, investigadores y analistas de discurso político.
+**VerifAI** combina transcripción automática, corrección con IA y verificación de declaraciones en tiempo real en una sola extensión de navegador. Pensada para periodistas, investigadores y analistas de discurso político.
 
 El flujo completo:
 
@@ -65,7 +65,7 @@ Video de YouTube → Guión (CC o Whisper) → Corrección con GPT → Extracci�
 2. Abre Chrome y ve a `chrome://extensions/`.
 3. Activa el **Modo de desarrollador** (esquina superior derecha).
 4. Haz clic en **"Cargar extensión sin empaquetar"** y selecciona la carpeta del proyecto.
-5. La extensión aparecerá en la barra de Chrome con el ícono de Fact-Check Vivo.
+5. La extensión aparecerá en la barra de Chrome con el ícono de VerifAI.
 6. Abre cualquier video de YouTube, haz clic en el ícono y se abrirá el panel lateral.
 
 ---

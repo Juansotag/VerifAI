@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Fact-Check Vivo",
+  "name": "VerifAI",
   "version": "3.0",
   "description": "Extrae subtítulos, transcribe audio con Whisper y verifica declaraciones en tiempo real con Gemini + Google Search.",
   "permissions": [
@@ -17,7 +17,7 @@
     "https://generativelanguage.googleapis.com/*"
   ],
   "action": {
-    "default_title": "Fact-Check Vivo",
+    "default_title": "VerifAI",
     "default_icon": {
       "16": "icons/icon.png",
       "48": "icons/icon.png",

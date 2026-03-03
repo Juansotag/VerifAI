@@ -1062,3 +1062,12 @@ input::placeholder {
 .disc-kw-1{font-size:9px}.disc-kw-2{font-size:9.5px}.disc-kw-3{font-size:10px}.disc-kw-4{font-size:10.5px}.disc-kw-5{font-size:11px}.disc-kw-6{font-size:11.5px}.disc-kw-7{font-size:12px}.disc-kw-8{font-size:13px}.disc-kw-9{font-size:14px}.disc-kw-10{font-size:15px}
 .disc-frame-badge{font-size:10px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--primary);color:#fff;white-space:nowrap}
 .disc-count-badge{font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--danger-bg);color:var(--danger);border:1px solid rgba(220,38,38,0.25)}
+
+.disc-card-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:4px;font-size:9px;font-weight:800;flex-shrink:0;letter-spacing:0}
+.disc-icon-tone{background:rgba(30,59,112,0.12);color:var(--primary)}
+.disc-icon-emo{background:rgba(220,38,38,0.1);color:var(--danger)}
+.disc-icon-fal{background:rgba(180,83,9,0.1);color:var(--gold)}
+.disc-icon-euf{background:rgba(30,59,112,0.08);color:var(--primary)}
+.disc-icon-pol{background:rgba(220,38,38,0.08);color:var(--danger)}
+.disc-icon-kw{background:rgba(5,150,105,0.1);color:var(--success)}
+.disc-icon-enc{background:rgba(30,59,112,0.12);color:var(--primary)}

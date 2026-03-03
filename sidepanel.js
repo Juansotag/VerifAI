@@ -750,23 +750,23 @@ function showToast(msg) {
 //  DISCOURSE ANALYSIS MODULE
 // 
 
-const discSource     = document.getElementById('disc-source');
+const discSource = document.getElementById('disc-source');
 const analyzeDiscBtn = document.getElementById('analyze-disc-btn');
-const discStatus     = document.getElementById('disc-status');
-const discResults    = document.getElementById('disc-results');
-const discToneBadge    = document.getElementById('disc-tone-badge');
-const discToneFill     = document.getElementById('disc-tone-fill');
-const discToneDesc     = document.getElementById('disc-tone-desc');
+const discStatus = document.getElementById('disc-status');
+const discResults = document.getElementById('disc-results');
+const discToneBadge = document.getElementById('disc-tone-badge');
+const discToneFill = document.getElementById('disc-tone-fill');
+const discToneDesc = document.getElementById('disc-tone-desc');
 const discEmotionsList = document.getElementById('disc-emotions-list');
 const discFalaciasList = document.getElementById('disc-falacias-list');
 const discFalaciasCount = document.getElementById('disc-falacias-count');
-const discEufList      = document.getElementById('disc-euf-list');
-const discPolBadge     = document.getElementById('disc-pol-badge');
-const discPolDesc      = document.getElementById('disc-pol-desc');
-const discPolMarkers   = document.getElementById('disc-pol-markers');
-const discKeywords     = document.getElementById('disc-keywords-list');
-const discFrameBadge   = document.getElementById('disc-frame-badge');
-const discFrameDesc    = document.getElementById('disc-frame-desc');
+const discEufList = document.getElementById('disc-euf-list');
+const discPolBadge = document.getElementById('disc-pol-badge');
+const discPolDesc = document.getElementById('disc-pol-desc');
+const discPolMarkers = document.getElementById('disc-pol-markers');
+const discKeywords = document.getElementById('disc-keywords-list');
+const discFrameBadge = document.getElementById('disc-frame-badge');
+const discFrameDesc = document.getElementById('disc-frame-desc');
 const discFrameSecondary = document.getElementById('disc-frame-secondary');
 
 analyzeDiscBtn.addEventListener('click', async () => {
@@ -775,14 +775,14 @@ analyzeDiscBtn.addEventListener('click', async () => {
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) { showToast('Necesitas tu API Key de OpenAI en Configuracion'); settingsPanel.classList.remove('hidden'); return; }
     analyzeDiscBtn.disabled = true;
-    discStatus.textContent  = 'Analizando discurso con IA...';
+    discStatus.textContent = 'Analizando discurso con IA...';
     discResults.classList.add('hidden');
-    const PROMPT = `Eres un experto en analisis del discurso y linguistica critica. Analiza el siguiente texto y devuelve UNICAMENTE un objeto JSON con este esquema exacto (sin bloques de codigo, sin texto adicional):\n\n{"tono":{"valor":"positivo|negativo|neutral|mixto","intensidad":"alta|media|baja","positividad":0,"descripcion":"..."},"emociones":[{"nombre":"...","porcentaje":0}],"falacias":[{"tipo":"...","cita_textual":"...","explicacion":"..."}],"eufemismos_disfemismos":[{"termino":"...","tipo":"eufemismo|disfemismo","efecto":"..."}],"polarizacion":{"nivel":"ninguna|baja|media|alta","descripcion":"...","marcadores":["..."]},"palabras_clave":[{"palabra":"...","peso":1}],"encuadre":{"marco_principal":"...","descripcion":"...","marcos_secundarios":["..."]}}\n\nREGLAS: positividad 0-100 (0=muy negativo,50=neutral,100=muy positivo). emociones max 5. falacias solo las reales. palabras_clave max 12 peso 1-10. eufemismos max 6.\n\nTEXTO:\n"""\n` + text.substring(0,4000) + '\n"""';
+    const PROMPT = 'Eres un experto en analisis critico del discurso, linguistica forense y retorica politica. Tu trabajo es analizar textos con precision academica, sin suavizar hallazgos. Debes ser directo, especifico y citar palabras reales del texto. Devuelve UNICAMENTE un objeto JSON (sin bloques de codigo, sin explicaciones fuera del JSON) con este esquema:\n\n{"tono":{"valor":"positivo|negativo|neutral|mixto","intensidad":"alta|media|baja","positividad":0,"descripcion":"Describe en 2-3 oraciones el tono predominante citando fragmentos literales del texto que lo evidencian. No seas vago."},"emociones":[{"nombre":"...","porcentaje":0,"evidencia":"cita literal del texto que genera esta emocion"}],"falacias":[{"tipo":"...","cita_textual":"copia el fragmento exacto del texto","explicacion":"explica por que es una falacia"}],"eufemismos_disfemismos":[{"termino":"palabra o frase exacta del texto","tipo":"eufemismo|disfemismo","efecto":"que realidad oculta o agrava"}],"polarizacion":{"nivel":"ninguna|baja|media|alta","descripcion":"2-3 oraciones explicando la dinamica nosotros/ellos o ingroup/outgroup. Cita las palabras de alta carga emocional (insultos, deshumanizacion, amenazas). Si hay palabras como parasitos, delincuentes, enemigos, invasores, traidores u otras con carga negativa intensa, DEBES mencionarlas.","marcadores":["frases o palabras exactas del texto que generan polarizacion"],"palabras_carga_alta":["lista de palabras emotivamente cargadas encontradas"]},"palabras_clave":[{"palabra":"...","peso":1,"carga":"neutral|positiva|negativa"}],"encuadre":{"marco_principal":"nombre del marco","descripcion":"2-4 oraciones explicando que narrativa construye el texto: que problema define, quien es el culpable, quien es la victima, que solucion propone. Cita fragmentos.","estrategias_narrativas":["lista de estrategias retorico-narrativas usadas: victimizacion, heroizacion, demonizacion, catastrofismo, etc."],"marcos_secundarios":["otros marcos presentes"]}}\n\nREGLAS CRITICAS:\n- positividad 0-100: 0=extremadamente negativo, 50=neutral, 100=muy positivo\n- emociones: incluye TODAS las negativas detectables (miedo, rabia, indignacion, asco, ansiedad, resentimiento, desprecio). Maximo 6. No pongas alegria si no hay evidencia clara.\n- falacias: sospecha de ellas activamente. Incluye generalizaciones indebidas, falsas equivalencias, ad hominem, hombre de paja, pendiente resbaladiza, apelacion al miedo, ad populum. Sé SENSIBLE, incluye falacias debiles si las hay.\n- eufemismos/disfemismos: maximo 8. Un disfemismo es cualquier palabra que degrada, insulta o deshumaniza. Busca activamente lenguaje agresivo o eufemistico.\n- palabras_clave: maximo 14, incluye palabras con carga emocional alta aunque no sean "tematicas"\n- encuadre: profundiza en la narrativa. Identifica mecanismos de construccion de enemigo, victima y heroe.\n\nTEXTO A ANALIZAR:\n"""\n' + text.substring(0, 5000) + '\n"""';
     try {
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'user', content: PROMPT }], response_format: { type: 'json_object' }, temperature: 0.2 })
+            body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'user', content: PROMPT }], response_format: { type: 'json_object' }, temperature: 0.4 })
         });
         const data = await res.json();
         if (!res.ok) { discStatus.textContent = 'Error: ' + (data?.error?.message || res.status); return; }
@@ -818,10 +818,11 @@ function renderTone(tono) {
 }
 
 function renderEmotions(emociones) {
-    const COLORS = { 'Miedo':'#7c3aed','Rabia':'#dc2626','Tristeza':'#2563eb','Alegria':'#059669','Sorpresa':'#d97706','Asco':'#65a30d','Ansiedad':'#9333ea','Esperanza':'#0891b2','Indignacion':'#b91c1c' };
+    const COLORS = { 'Miedo': '#7c3aed', 'Rabia': '#dc2626', 'Tristeza': '#2563eb', 'Alegria': '#059669', 'Alegría': '#059669', 'Sorpresa': '#d97706', 'Asco': '#65a30d', 'Ansiedad': '#9333ea', 'Indignacion': '#b91c1c', 'Indignación': '#b91c1c', 'Resentimiento': '#be123c', 'Desprecio': '#9f1239', 'Esperanza': '#0891b2' };
     discEmotionsList.innerHTML = emociones.length ? emociones.map(e => {
-        const color = COLORS[e.nombre] || 'var(--primary)';
-        return '<div class="disc-emotion-row"><span class="disc-emotion-name">' + e.nombre + '</span><div class="disc-emotion-bar-wrap"><div class="disc-emotion-fill" style="width:' + e.porcentaje + '%;background:' + color + '"></div></div><span class="disc-emotion-pct">' + e.porcentaje + '%</span></div>';
+        const color = COLORS[e.nombre] || '#64748b';
+        const evidencia = e.evidencia ? '<div class="disc-fallacy-quote" style="margin-top:3px">' + e.evidencia + '</div>' : '';
+        return '<div style="display:flex;flex-direction:column;gap:2px"><div class="disc-emotion-row"><span class="disc-emotion-name">' + e.nombre + '</span><div class="disc-emotion-bar-wrap"><div class="disc-emotion-fill" style="width:' + e.porcentaje + '%;background:' + color + '"></div></div><span class="disc-emotion-pct">' + e.porcentaje + '%</span></div>' + evidencia + '</div>';
     }).join('') : '<span class="disc-none-msg">No se detectaron emociones predominantes.</span>';
 }
 
@@ -844,17 +845,30 @@ function renderPolarization(pol) {
     discPolBadge.textContent = labels[nivel] || nivel;
     discPolBadge.className = 'disc-pol-badge ' + nivel;
     discPolDesc.textContent = pol.descripcion || '';
-    discPolMarkers.innerHTML = (pol.marcadores || []).map(m => '<span class="disc-chip marker">' + m + '</span>').join('');
+
+    let chips = (pol.marcadores || []).map(m => '<span class="disc-chip marker">' + m + '</span>').join('');
+    if ((pol.palabras_carga_alta || []).length) {
+        chips += '<div style="width:100%;margin-top:4px;font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.4px">Carga emocional alta</div>';
+        chips += (pol.palabras_carga_alta || []).map(p => '<span class="disc-chip disfemismo">' + p + '</span>').join('');
+    }
+    discPolMarkers.innerHTML = chips || '';
 }
 
 function renderKeywords(keywords) {
-    discKeywords.innerHTML = keywords.length ? keywords.map(k =>
-        '<span class="disc-keyword disc-kw-' + Math.min(10,Math.max(1,k.peso)) + '">' + k.palabra + '</span>'
-    ).join('') : '<span class="disc-none-msg">-</span>';
+    discKeywords.innerHTML = keywords.length ? keywords.map(k => {
+        const cargaClass = k.carga === 'negativa' ? 'style="background:rgba(220,38,38,0.08);color:#b91c1c;border-color:rgba(220,38,38,0.2)"' : k.carga === 'positiva' ? 'style="background:rgba(5,150,105,0.08);color:#065f46;border-color:rgba(5,150,105,0.2)"' : '';
+        return '<span class="disc-keyword disc-kw-' + Math.min(10, Math.max(1, k.peso)) + '" ' + cargaClass + '>' + k.palabra + '</span>';
+    }).join('') : '<span class="disc-none-msg">-</span>';
 }
 
 function renderFraming(enc) {
     discFrameBadge.textContent = enc.marco_principal || '-';
-    discFrameDesc.textContent  = enc.descripcion || '';
-    discFrameSecondary.innerHTML = (enc.marcos_secundarios || []).map(m => '<span class="disc-chip secondary">' + m + '</span>').join('');
+    discFrameDesc.textContent = enc.descripcion || '';
+
+    let secondary = (enc.marcos_secundarios || []).map(m => '<span class="disc-chip secondary">' + m + '</span>').join('');
+    if ((enc.estrategias_narrativas || []).length) {
+        secondary += '<div style="width:100%;margin-top:4px;font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.4px">Estrategias narrativas</div>';
+        secondary += (enc.estrategias_narrativas || []).map(s => '<span class="disc-chip marker">' + s + '</span>').join('');
+    }
+    discFrameSecondary.innerHTML = secondary;
 }
