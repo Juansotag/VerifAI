@@ -120,4 +120,14 @@ Desarrollado por **Juan Sotelo Aguilar**
 
 ## Licencia
 
-Este proyecto es de uso académico e investigativo. Para usos comerciales, contactar al GovLab de la Universidad de la Sabana.
+[![CC BY-NC 4.0](https://licensebuttons.net/l/by-nc/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc/4.0/)
+
+Este proyecto está licenciado bajo **Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)**.
+
+- ✅ Puedes usar, copiar, adaptar y redistribuir libremente.
+- ✅ Debes dar crédito a **Juan Sotelo Aguilar / GovLab — Universidad de la Sabana**.
+- ❌ No puedes usar este proyecto con fines comerciales sin autorización expresa.
+
+Para licencias comerciales: [GovLab Universidad de la Sabana](https://www.unisabana.edu.co/)  
+Ver texto completo en [LICENSE](./LICENSE).
+
