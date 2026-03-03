@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Fact-Check Vivo",
+  "version": "3.0",
+  "description": "Extrae subtítulos, transcribe audio con Whisper y verifica declaraciones en tiempo real con Gemini + Google Search.",
+  "permissions": [
+    "storage",
+    "tabCapture",
+    "sidePanel",
+    "activeTab",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "https://api.openai.com/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "action": {
+    "default_title": "Fact-Check Vivo",
+    "default_icon": {
+      "16": "icons/icon.png",
+      "48": "icons/icon.png",
+      "128": "icons/icon.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/watch*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
