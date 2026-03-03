@@ -119,6 +119,113 @@
         </svg>
         Fact-Check
       </button>
+      <button class="tab-btn" data-mode="discurso">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        Discurso
+      </button>
+    </div>
+
+    <!-- ══════════════ DISCURSO PANEL ══════════════ -->
+    <div id="panel-discurso" class="panel hidden">
+      <div class="verif-toolbar">
+        <select id="disc-source">
+          <option value="cc-corrected">CC — Guión corregido</option>
+          <option value="cc-raw">CC — Guión bruto</option>
+          <option value="audio-corrected">Audio — Guión corregido</option>
+          <option value="audio-raw">Audio — Guión bruto</option>
+        </select>
+        <button class="btn btn-sm" id="analyze-disc-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          Analizar
+        </button>
+      </div>
+      <p id="disc-status" class="verif-status"></p>
+      <div id="disc-results" class="disc-results hidden">
+
+        <!-- Tono -->
+        <div class="disc-card" id="disc-card-tono">
+          <div class="disc-card-header">
+            <span class="disc-card-icon">🎭</span>
+            <span class="disc-card-title">Tono y Sentimiento</span>
+            <span class="disc-tone-badge" id="disc-tone-badge"></span>
+          </div>
+          <div class="disc-tone-bar-wrap">
+            <span class="disc-bar-label">Negativo</span>
+            <div class="disc-tone-bar">
+              <div class="disc-tone-fill" id="disc-tone-fill"></div>
+            </div>
+            <span class="disc-bar-label">Positivo</span>
+          </div>
+          <p class="disc-card-text" id="disc-tone-desc"></p>
+        </div>
+
+        <!-- Emociones -->
+        <div class="disc-card" id="disc-card-emociones">
+          <div class="disc-card-header">
+            <span class="disc-card-icon">❤️</span>
+            <span class="disc-card-title">Emociones Dominantes</span>
+          </div>
+          <div class="disc-emotions-list" id="disc-emotions-list"></div>
+        </div>
+
+        <!-- Falacias -->
+        <div class="disc-card" id="disc-card-falacias">
+          <div class="disc-card-header">
+            <span class="disc-card-icon">⚠️</span>
+            <span class="disc-card-title">Falacias Lógicas</span>
+            <span class="disc-count-badge" id="disc-falacias-count"></span>
+          </div>
+          <div class="disc-list" id="disc-falacias-list"></div>
+        </div>
+
+        <!-- Eufemismos -->
+        <div class="disc-card" id="disc-card-eufemismos">
+          <div class="disc-card-header">
+            <span class="disc-card-icon">💬</span>
+            <span class="disc-card-title">Eufemismos y Disfemismos</span>
+          </div>
+          <div class="disc-chips" id="disc-euf-list"></div>
+        </div>
+
+        <!-- Polarización -->
+        <div class="disc-card" id="disc-card-polarizacion">
+          <div class="disc-card-header">
+            <span class="disc-card-icon">⚡</span>
+            <span class="disc-card-title">Polarización</span>
+            <span class="disc-pol-badge" id="disc-pol-badge"></span>
+          </div>
+          <p class="disc-card-text" id="disc-pol-desc"></p>
+          <div class="disc-chips" id="disc-pol-markers"></div>
+        </div>
+
+        <!-- Palabras clave -->
+        <div class="disc-card" id="disc-card-keywords">
+          <div class="disc-card-header">
+            <span class="disc-card-icon">🔑</span>
+            <span class="disc-card-title">Palabras Clave</span>
+          </div>
+          <div class="disc-keywords" id="disc-keywords-list"></div>
+        </div>
+
+        <!-- Encuadre -->
+        <div class="disc-card" id="disc-card-encuadre">
+          <div class="disc-card-header">
+            <span class="disc-card-icon">🖼️</span>
+            <span class="disc-card-title">Encuadre (Framing)</span>
+            <span class="disc-frame-badge" id="disc-frame-badge"></span>
+          </div>
+          <p class="disc-card-text" id="disc-frame-desc"></p>
+          <div class="disc-chips" id="disc-frame-secondary"></div>
+        </div>
+
+      </div>
     </div>
 
     <!-- ══════════════ CC PANEL ══════════════ -->

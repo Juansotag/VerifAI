@@ -745,3 +745,116 @@ function showToast(msg) {
     toast.classList.add('show');
     toastTimeout = setTimeout(() => toast.classList.remove('show'), 2500);
 }
+
+// 
+//  DISCOURSE ANALYSIS MODULE
+// 
+
+const discSource     = document.getElementById('disc-source');
+const analyzeDiscBtn = document.getElementById('analyze-disc-btn');
+const discStatus     = document.getElementById('disc-status');
+const discResults    = document.getElementById('disc-results');
+const discToneBadge    = document.getElementById('disc-tone-badge');
+const discToneFill     = document.getElementById('disc-tone-fill');
+const discToneDesc     = document.getElementById('disc-tone-desc');
+const discEmotionsList = document.getElementById('disc-emotions-list');
+const discFalaciasList = document.getElementById('disc-falacias-list');
+const discFalaciasCount = document.getElementById('disc-falacias-count');
+const discEufList      = document.getElementById('disc-euf-list');
+const discPolBadge     = document.getElementById('disc-pol-badge');
+const discPolDesc      = document.getElementById('disc-pol-desc');
+const discPolMarkers   = document.getElementById('disc-pol-markers');
+const discKeywords     = document.getElementById('disc-keywords-list');
+const discFrameBadge   = document.getElementById('disc-frame-badge');
+const discFrameDesc    = document.getElementById('disc-frame-desc');
+const discFrameSecondary = document.getElementById('disc-frame-secondary');
+
+analyzeDiscBtn.addEventListener('click', async () => {
+    const text = getSourceText(discSource.value).trim();
+    if (!text) { discStatus.textContent = 'El texto fuente esta vacio.'; return; }
+    const apiKey = apiKeyInput.value.trim();
+    if (!apiKey) { showToast('Necesitas tu API Key de OpenAI en Configuracion'); settingsPanel.classList.remove('hidden'); return; }
+    analyzeDiscBtn.disabled = true;
+    discStatus.textContent  = 'Analizando discurso con IA...';
+    discResults.classList.add('hidden');
+    const PROMPT = `Eres un experto en analisis del discurso y linguistica critica. Analiza el siguiente texto y devuelve UNICAMENTE un objeto JSON con este esquema exacto (sin bloques de codigo, sin texto adicional):\n\n{"tono":{"valor":"positivo|negativo|neutral|mixto","intensidad":"alta|media|baja","positividad":0,"descripcion":"..."},"emociones":[{"nombre":"...","porcentaje":0}],"falacias":[{"tipo":"...","cita_textual":"...","explicacion":"..."}],"eufemismos_disfemismos":[{"termino":"...","tipo":"eufemismo|disfemismo","efecto":"..."}],"polarizacion":{"nivel":"ninguna|baja|media|alta","descripcion":"...","marcadores":["..."]},"palabras_clave":[{"palabra":"...","peso":1}],"encuadre":{"marco_principal":"...","descripcion":"...","marcos_secundarios":["..."]}}\n\nREGLAS: positividad 0-100 (0=muy negativo,50=neutral,100=muy positivo). emociones max 5. falacias solo las reales. palabras_clave max 12 peso 1-10. eufemismos max 6.\n\nTEXTO:\n"""\n` + text.substring(0,4000) + '\n"""';
+    try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'user', content: PROMPT }], response_format: { type: 'json_object' }, temperature: 0.2 })
+        });
+        const data = await res.json();
+        if (!res.ok) { discStatus.textContent = 'Error: ' + (data?.error?.message || res.status); return; }
+        const result = JSON.parse(data.choices?.[0]?.message?.content || '{}');
+        renderDiscourseResults(result);
+        discStatus.textContent = 'Analisis completado.';
+        discResults.classList.remove('hidden');
+    } catch (err) {
+        discStatus.textContent = 'Error: ' + err.message;
+    } finally {
+        analyzeDiscBtn.disabled = false;
+    }
+});
+
+function renderDiscourseResults(d) {
+    renderTone(d.tono || {});
+    renderEmotions(d.emociones || []);
+    renderFallacies(d.falacias || []);
+    renderEuphemisms(d.eufemismos_disfemismos || []);
+    renderPolarization(d.polarizacion || {});
+    renderKeywords(d.palabras_clave || []);
+    renderFraming(d.encuadre || {});
+}
+
+function renderTone(tono) {
+    const val = (tono.valor || 'neutral').toLowerCase();
+    const labels = { positivo: 'Positivo', negativo: 'Negativo', neutral: 'Neutral', mixto: 'Mixto' };
+    discToneBadge.textContent = labels[val] || val;
+    discToneBadge.className = 'disc-tone-badge ' + val;
+    const pct = typeof tono.positividad === 'number' ? tono.positividad : 50;
+    discToneFill.style.width = pct + '%';
+    discToneDesc.textContent = tono.descripcion || '';
+}
+
+function renderEmotions(emociones) {
+    const COLORS = { 'Miedo':'#7c3aed','Rabia':'#dc2626','Tristeza':'#2563eb','Alegria':'#059669','Sorpresa':'#d97706','Asco':'#65a30d','Ansiedad':'#9333ea','Esperanza':'#0891b2','Indignacion':'#b91c1c' };
+    discEmotionsList.innerHTML = emociones.length ? emociones.map(e => {
+        const color = COLORS[e.nombre] || 'var(--primary)';
+        return '<div class="disc-emotion-row"><span class="disc-emotion-name">' + e.nombre + '</span><div class="disc-emotion-bar-wrap"><div class="disc-emotion-fill" style="width:' + e.porcentaje + '%;background:' + color + '"></div></div><span class="disc-emotion-pct">' + e.porcentaje + '%</span></div>';
+    }).join('') : '<span class="disc-none-msg">No se detectaron emociones predominantes.</span>';
+}
+
+function renderFallacies(falacias) {
+    if (falacias.length) { discFalaciasCount.textContent = falacias.length; discFalaciasCount.style.display = 'inline'; } else { discFalaciasCount.style.display = 'none'; }
+    discFalaciasList.innerHTML = falacias.length ? falacias.map(f =>
+        '<div class="disc-fallacy-item"><span class="disc-fallacy-type">' + f.tipo + '</span>' + (f.cita_textual ? '<span class="disc-fallacy-quote">"' + f.cita_textual + '"</span>' : '') + '<span class="disc-fallacy-exp">' + f.explicacion + '</span></div>'
+    ).join('') : '<span class="disc-none-msg">No se detectaron falacias logicas.</span>';
+}
+
+function renderEuphemisms(items) {
+    discEufList.innerHTML = items.length ? items.map(e =>
+        '<span class="disc-chip ' + e.tipo + '" title="' + e.efecto + '">' + (e.tipo === 'eufemismo' ? 'E' : 'D') + ' ' + e.termino + '</span>'
+    ).join('') : '<span class="disc-none-msg">No se detectaron eufemismos ni disfemismos.</span>';
+}
+
+function renderPolarization(pol) {
+    const nivel = (pol.nivel || 'ninguna').toLowerCase();
+    const labels = { ninguna: 'Ninguna', baja: 'Baja', media: 'Media', alta: 'Alta' };
+    discPolBadge.textContent = labels[nivel] || nivel;
+    discPolBadge.className = 'disc-pol-badge ' + nivel;
+    discPolDesc.textContent = pol.descripcion || '';
+    discPolMarkers.innerHTML = (pol.marcadores || []).map(m => '<span class="disc-chip marker">' + m + '</span>').join('');
+}
+
+function renderKeywords(keywords) {
+    discKeywords.innerHTML = keywords.length ? keywords.map(k =>
+        '<span class="disc-keyword disc-kw-' + Math.min(10,Math.max(1,k.peso)) + '">' + k.palabra + '</span>'
+    ).join('') : '<span class="disc-none-msg">-</span>';
+}
+
+function renderFraming(enc) {
+    discFrameBadge.textContent = enc.marco_principal || '-';
+    discFrameDesc.textContent  = enc.descripcion || '';
+    discFrameSecondary.innerHTML = (enc.marcos_secundarios || []).map(m => '<span class="disc-chip secondary">' + m + '</span>').join('');
+}
