@@ -1,13 +1,13 @@
-# VerifAI
+# Polycheck
 
 > Extensión de Chrome para verificación de hechos y análisis de discurso forense en tiempo real sobre videos de YouTube.
 > Desarrollada por el **GovLab** de la **Universidad de la Sabana** — Juan Sotelo Aguilar.
 
 ---
 
-## ¿Qué es VerifAI?
+## ¿Qué es Polycheck?
 
-**VerifAI** es una potente herramienta de código abierto diseñada para mitigar el impacto de la desinformación en procesos electorales y debates públicos. Su objetivo principal es identificar, evaluar y validar en tiempo real las afirmaciones empíricas en los discursos de los candidatos políticos a partir de la evidencia.
+**Polycheck** es una potente herramienta de código abierto diseñada para mitigar el impacto de la desinformación en procesos electorales y debates públicos. Su objetivo principal es identificar, evaluar y validar en tiempo real las afirmaciones empíricas en los discursos de los candidatos políticos a partir de la evidencia.
 
 Integrando inteligencia artificial avanzada de OpenAI y Google (Gemini), la extensión captura las transcripciones de videos y directos de YouTube —ya sea mediante *Close Captions* (CC) nativos o reconocimiento de voz en la nube (Whisper)— transformando el habla en texto limpio, fácil de leer y analizable. 
 
@@ -94,7 +94,7 @@ Este método opera a nivel de pestaña, capturando el flujo de audio puro. Es id
 ### 3. Motor de Fact-Checking (Extracción y Grounding)
 - **Módulo de Extracción de Sentencias:** También de lectura iterativa (por puntero `lastScannedPos`), manda fragmentos brutos o corregidos a **GPT-4o-mini**. Un prompt holístico descarta saludos para aislar opiniones agresivas y aseveraciones factuales determinantes.
 - **Búsqueda Dinámica (Gemini 2.5 Flash):** El esquema enlista declaraciones en la interfaz DOM permitiendo ediciones humanas. Al despacharlas a verificación, el programa empaqueta silenciosamente el *Metadata* del video (Nombre y Contexto) dándole perspectiva vital para desambiguar aseveraciones imprecisas (Ej: "Este gobierno").
-- **Metadatos e Inserciones de Google:** Gemini rastrea internet y contesta con evidencia estructurada y punteros web. VerifAI filtra el campo nativo de Google llamado `groundingMetadata.groundingChunks` vinculando la procedencia explícita en tarjetas visuales de referenciación.
+- **Metadatos e Inserciones de Google:** Gemini rastrea internet y contesta con evidencia estructurada y punteros web. Polycheck filtra el campo nativo de Google llamado `groundingMetadata.groundingChunks` vinculando la procedencia explícita en tarjetas visuales de referenciación.
 
 ### 4. Motor Forense Analítico 
 Analiza la estructura discursiva usando **GPT-4o** con el protocolo estricto JSON object paramétrico, categorizando el Tono, las Falacias (ej: Hombre de Paja), los Eufemismos y la dinámica Nosotros contra Ellos (Polarización y Encuadre), solicitando siempre el acompañamiento de las **evidencias textuales** extraídas de la carga enviada.
